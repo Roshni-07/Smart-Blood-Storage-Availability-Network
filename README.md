@@ -1,131 +1,338 @@
-# Smart Blood Storage & Availability Network
+# 🩸 Smart Blood Storage & Availability Network
 
-A locally runnable prototype that monitors **simulated** blood storage facilities,
-tracks blood units, searches availability across facilities and raises rule-based alerts.
+### Monitor storage. Track inventory. Connect availability.
 
-> **Prototype only.** Facilities and sensor readings are simulated. This is a software
-> demonstration, not a validated medical device or certified blood-bank system, and it
-> does not control real storage equipment.
+A software prototype that brings blood storage monitoring, inventory management, and cross-facility availability into one unified platform.
 
-| Layer    | Technology |
-|----------|------------|
-| Backend  | Python 3.11+, FastAPI, SQLAlchemy 2, SQLite |
-| Frontend | React 19 + Vite, Tailwind CSS 4, Recharts, Axios, Lucide icons, React Router |
+**Smart Blood Storage & Availability Network** demonstrates how multiple blood storage facilities can be monitored through simulated sensor data, how inventory can be tracked across locations, and how rule-based alerts can help identify storage conditions that need attention.
+
+> **Note:** This is an academic software prototype. All facilities, sensor readings, and inventory records are simulated. It is not a validated medical device, certified blood-bank management system, or clinical decision-making tool. It does not control real storage equipment or authorize blood release.
 
 ---
 
-## 1. Prerequisites (Windows 11)
+## ✨ What does it do?
 
-Check in PowerShell:
+The platform brings together three important workflows:
+
+| Capability | What it offers |
+|---|---|
+| 🌡️ Storage Monitoring | Monitor temperature readings across multiple storage zones and compare them against configurable limits. |
+| 🩸 Inventory Management | Register, track, reserve, issue, and transfer blood units across facilities. |
+| 🔎 Availability Search | Search blood component availability across multiple facilities using blood-group compatibility demonstration rules. |
+| 🚨 Rule-Based Alerts | Detect temperature deviations, low stock, and approaching expiry through automated rules. |
+| 📊 Central Dashboard | View facility status, storage conditions, stock distribution, and outstanding alerts. |
+
+## 🚀 The platform in action
+
+### 01 — Monitor storage conditions
+
+Monitor simulated sensor readings across three facilities and nine storage zones.
+
+- Automatic sensor updates every five seconds.
+- Temperature history visualized through interactive charts.
+- Configurable acceptable storage ranges.
+- Visual indication of normal and out-of-range conditions.
+
+### 02 — Detect and respond to alerts
+
+The rule-based alert engine evaluates incoming readings and inventory conditions.
+
+- Critical alerts for temperature deviations.
+- Low-stock warnings for selected blood groups.
+- Expiry-related notifications.
+- Alert acknowledgement and resolution tracking.
+
+### 03 — Manage blood inventory
+
+Maintain a centralized view of blood units across participating facilities.
+
+- Register new blood units.
+- Track blood group, component, volume, collection date, and expiry date.
+- Reserve, issue, and transfer inventory.
+- Monitor inventory status and expiry timelines.
+
+### 04 — Search availability across facilities
+
+Search for available blood components across all participating facilities.
+
+- Search using recipient blood group and component.
+- Demonstrate compatibility-based donor-group filtering.
+- View availability across multiple facilities.
+- Prioritize results by facility availability.
+
+*Compatibility results are illustrative software rules, not clinical transfusion authorization.*
+
+---
+
+## 🧪 Try the live simulation
+
+The following workflow demonstrates the complete monitoring-to-alert lifecycle.
+
+| Step | Action | Expected result |
+|---|---|---|
+| 01 | Open Dashboard | View facility status, stock distribution, and alerts. |
+| 02 | Open Storage Monitoring | Observe simulated temperature readings and history. |
+| 03 | Select **Warm up** on City Central's refrigerator | Temperature gradually increases and crosses its configured upper limit. |
+| 04 | Open Alerts | A critical temperature alert appears. |
+| 05 | Select **Acknowledge** | The alert records acknowledgement. |
+| 06 | Return to Monitoring and select **Restore normal** | The temperature returns towards its normal range and the alert can be automatically resolved. |
+| 07 | Open Inventory | Register a new unit and explore reservation, issue, and transfer actions. |
+| 08 | Open Availability Search | Search for AB- Packed Red Cells and inspect compatible demonstration results. |
+
+**Additional scenarios:** Explore expired-stock exclusion, low-stock alerts for rare negative groups, and upcoming-expiry warnings.
+
+---
+
+## 🏗️ System architecture
+
+The application follows a straightforward frontend–backend architecture.
+
+```text
+                 ┌──────────────────────────────┐
+                 │       React Frontend         │
+                 │                              │
+                 │ Dashboard | Monitoring       │
+                 │ Inventory | Availability    │
+                 │ Alerts                     │
+                 └──────────────┬───────────────┘
+                                │
+                         REST API / JSON
+                                │
+                 ┌──────────────▼───────────────┐
+                 │       FastAPI Backend        │
+                 │                              │
+                 │ Facility Management          │
+                 │ Inventory Management         │
+                 │ Availability Search          │
+                 │ Sensor Simulation            │
+                 │ Rule-Based Alert Engine      │
+                 └──────────────┬───────────────┘
+                                │
+                 ┌──────────────▼───────────────┐
+                 │          SQLite              │
+                 │                              │
+                 │ Facilities | Storage Zones   │
+                 │ Sensor Readings | Blood Units│
+                 │ Alerts                       │
+                 └──────────────────────────────┘
+```
+
+The frontend communicates with the backend through REST APIs. The backend manages application logic, simulated sensor readings, inventory operations, and alert generation. SQLite stores the prototype's application data.
+
+### Technology stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React 19, Vite, Tailwind CSS 4 |
+| Visualization | Recharts |
+| Navigation & Icons | React Router, Lucide React |
+| API Communication | Axios |
+| Backend | Python 3.11+, FastAPI |
+| Database | SQLite, SQLAlchemy 2 |
+| Validation | Pydantic |
+| Testing | Pytest |
+
+---
+
+## ⚙️ Get started locally
+
+### Prerequisites
+
+Install the following on Windows 11:
+
+- Python 3.11 or newer
+- Node.js 20.19+ or 22.12+
+- npm
+- Git
+
+Verify your installations:
 
 ```powershell
-python --version   # 3.11 or newer
-node --version     # 20.19+ or 22.12+  (Vite 8 needs this; install Node 22 LTS if older)
+python --version
+node --version
 npm --version
 git --version
 ```
 
-## 2. Quick start (double-click)
+### Option A — Quick start
 
-1. **`setup.bat`** – one time only. Creates the Python venv and installs all packages.
-2. **`start-backend.bat`** – API + sensor simulator on http://localhost:8000
-3. **`start-frontend.bat`** – web app on http://localhost:5173 (opens your browser)
+The project includes Windows batch scripts to simplify setup.
 
-Keep both windows open while you work.
+**First-time setup**
 
-**Review day:** use **`start-demo.bat`** instead of steps 2–3. It builds the frontend and serves
-the whole app from http://localhost:8000 in one window.
+```text
+setup.bat
+```
 
-The `.bat` files call the venv's Python directly, so the PowerShell
-"execution policy" problem with `Activate.ps1` never comes up.
+**Start the application**
 
-## 3. Manual setup (same thing, typed)
+Open two terminals and run:
+
+```text
+start-backend.bat
+```
+
+```text
+start-frontend.bat
+```
+
+Keep both terminals running.
+
+| Service | Address |
+|---|---|
+| Web application | http://localhost:5173 |
+| Backend API | http://localhost:8000 |
+| Interactive API documentation | http://localhost:8000/docs |
+
+### Option B — Single-window demonstration
+
+For a review or demonstration, use:
+
+```text
+start-demo.bat
+```
+
+This builds the frontend and serves the complete application through the backend at:
+
+**http://localhost:8000**
+
+### Manual installation
+
+**Backend**
 
 ```powershell
-# Terminal 1 – backend
 cd backend
+
 python -m venv venv
 .\venv\Scripts\Activate.ps1
-pip install -r requirements.txt -r requirements-dev.txt
-uvicorn app.main:app --reload --port 8000
 
-# Terminal 2 – frontend
+pip install -r requirements.txt -r requirements-dev.txt
+
+uvicorn app.main:app --reload --port 8000
+```
+
+**Frontend** — open another terminal:
+
+```powershell
 cd frontend
+
 npm install
 npm run dev
 ```
 
-* Web app: http://localhost:5173
-* Interactive API docs (try every endpoint): http://localhost:8000/docs
+---
 
-On first start the backend creates `backend/blood_network.db` and fills it with demo data:
-3 facilities in Bengaluru, 9 storage zones, about 106 blood units and 1 hour of sensor history.
+## 🗂️ Project structure
 
-## 4. Demonstration script (matches the project plan)
-
-| Step | Where | What to do / say |
-|------|-------|------------------|
-| 1 | **Dashboard** | Three facilities with live zone temperatures, stock by blood group, alerts waiting. |
-| 2 | **Storage Monitoring** | Every zone updates every 5 s. The green band is the allowed range. |
-| 3 | **Storage Monitoring** | Press **Warm up** on City Central's refrigerator. About 1 °C per reading; it crosses 6 °C in ~15 s (press *Advance simulation* to go faster). |
-| 4 | **Alerts** | A **CRITICAL – Temperature too high** alert appears (sidebar badge turns red). Press **Acknowledge**. Back on Monitoring, press **Restore normal**: the alert becomes *Resolved* by itself. |
-| 5 | **Inventory** | Units across all facilities, soonest expiry first. **Register unit** to add one, then Reserve / Issue / Transfer it. |
-| 6 | **Availability Search** | Pick patient group **AB-**, Packed Red Cells. Results are ranked by facility, and compatible groups (O-, A-, B-) are included. |
-
-Extra talking points: the expired unit was removed from stock automatically, low-stock alerts
-for the rare negative groups, and the "expiring soon" warnings.
-
-**Reset the demo data:** `POST /api/simulation/reset` from http://localhost:8000/docs,
-or stop the backend and delete `backend/blood_network.db`.
-
-## 5. Tests
-
-```powershell
-run-tests.bat            # or: cd backend; .\venv\Scripts\python -m pytest -v
-```
-
-The tests walk through the same 6 demo steps against a temporary database.
-
-## 6. Project structure
-
-```
+```text
 smart-blood-network/
+│
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              # app start-up, routers, background simulator
-│   │   ├── database.py          # SQLite engine + session
-│   │   ├── models.py            # tables: Facility, StorageZone, SensorReading, BloodUnit, Alert
-│   │   ├── schemas.py           # API request/response shapes (the API contract)
-│   │   ├── constants.py         # blood groups, components, storage ranges, compatibility
-│   │   ├── routes/              # dashboard, facilities, inventory, availability, alerts, simulation
+│   │   ├── main.py
+│   │   ├── database.py
+│   │   ├── models.py
+│   │   ├── schemas.py
+│   │   ├── constants.py
+│   │   ├── routes/
 │   │   └── services/
 │   │       ├── sensor_simulator.py
 │   │       ├── alert_engine.py
-│   │       ├── seed.py          # demo data
+│   │       ├── seed.py
 │   │       └── serializers.py
-│   ├── tests/test_demo_workflow.py
+│   │
+│   ├── tests/
+│   │   └── test_demo_workflow.py
 │   ├── requirements.txt
 │   └── requirements-dev.txt
+│
 ├── frontend/
 │   ├── src/
-│   │   ├── pages/               # Dashboard, StorageMonitoring, Inventory, Availability, Alerts
-│   │   ├── components/          # Layout (sidebar), ui.jsx (shared pieces), StockChart
-│   │   ├── services/api.js      # every backend call in one place
-│   │   ├── hooks/usePolling.js  # auto-refresh every 5 s
-│   │   └── utils/format.js
-│   ├── vite.config.js           # /api proxied to the backend
+│   │   ├── pages/
+│   │   ├── components/
+│   │   ├── services/
+│   │   ├── hooks/
+│   │   └── utils/
+│   ├── public/
 │   └── package.json
-├── docs/HOW_IT_WORKS.md         # architecture, rules, API reference, design decisions
-├── setup.bat / start-*.bat / run-tests.bat
+│
+├── docs/
+│   └── HOW_IT_WORKS.md
+│
+├── setup.bat
+├── start-backend.bat
+├── start-frontend.bat
+├── start-demo.bat
+├── run-tests.bat
 └── README.md
 ```
 
-## 7. Troubleshooting
+---
 
-| Problem | Fix |
-|---------|-----|
-| Web app shows "Cannot reach the backend" | Start `start-backend.bat` first; check http://localhost:8000/api/health |
-| `npm run dev` says Node version is too old | Install Node.js 22 LTS from nodejs.org, reopen the terminal |
-| `Activate.ps1 cannot be loaded` | Use the `.bat` files, or `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
-| Port 8000 already in use | Close the other backend window, or change `--port` in the .bat and `vite.config.js` |
-| Want a clean demo | Delete `backend/blood_network.db` and restart the backend |
+## 🧫 Running tests
+
+Run the included demonstration workflow tests:
+
+```powershell
+run-tests.bat
+```
+
+Or execute them directly:
+
+```powershell
+cd backend
+.\venv\Scripts\python -m pytest -v
+```
+
+The tests exercise the six core demonstration workflows against a temporary database.
+
+---
+
+## 🔄 Resetting demonstration data
+
+To restore the initial demo state, use the simulation reset endpoint:
+
+```text
+POST /api/simulation/reset
+```
+
+Available through the interactive API documentation at:
+
+http://localhost:8000/docs
+
+Alternatively, stop the backend and delete:
+
+```text
+backend/blood_network.db
+```
+
+The database is recreated and seeded when the backend starts.
+
+The initial dataset includes:
+
+- 3 simulated facilities in Bengaluru
+- 9 storage zones
+- Approximately 106 blood units
+- One hour of simulated sensor history
+
+---
+
+## 🔮 Future scope
+
+The prototype establishes a software foundation that can be extended with:
+
+- Physical sensor integration using devices such as ESP32.
+- Real-time monitoring from connected storage equipment.
+- Expanded facility connectivity and inventory synchronization.
+- More comprehensive monitoring and operational analytics.
+
+These are potential extensions, not currently implemented capabilities.
+
+---
+
+## 📌 Project status
+
+**Academic prototype — locally runnable demonstration**
+
+Built to demonstrate how storage monitoring, inventory tracking, availability discovery, and rule-based alerts can work together in a multi-facility software platform.
+
