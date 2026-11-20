@@ -49,13 +49,17 @@ Times are stored in UTC and sent with a `Z` suffix, so the browser shows them in
 
 | Component | Code | Storage | Shelf life used |
 |-----------|------|---------|-----------------|
-| Whole Blood | WB | 2–6 °C refrigerator | 35 days |
-| Packed Red Cells | RBC | 2–6 °C refrigerator | 42 days |
-| Platelets | PLT | 20–24 °C with agitation | 5 days |
-| Fresh Frozen Plasma | FFP | −18 °C or colder (setpoint −30 °C) | 1 year |
+| Whole Blood (CPDA-1 assumed) | WB | 2–6 °C refrigerator | 35 days; CPD is max 21 days |
+| Packed Red Cells (additive solution assumed) | RBC | 2–6 °C refrigerator | Up to 42 days with specified additive solutions; CPDA-1 max 35 days; open-system processing 24 h |
+| Platelets | PLT | 20–24 °C (22 ± 2 °C) with continuous gentle agitation | 3 or 5 days according to bag manufacturer/regulator; demo default 5 days |
+| Fresh Frozen Plasma (frozen) | FFP | −30 °C or colder (demo alarm envelope −80 to −30 °C) | Up to 12 months |
+| Thawed Plasma | TFP | 2–6 °C refrigerator | Up to 24 hours |
 
-These are common reference values, not validated settings. A real system must take them
-from the blood bank's approved SOPs and national regulations.
+**Scientific basis (India):** National Standards for Blood Centres & Blood Transfusion Services, 2nd ed. (2022), clauses 8.16.3–8.16.5 and 8.18.1–8.18.5. These specify refrigerator 4 ± 2 °C; CPD whole blood up to 21 days and CPDA-1 up to 35 days; red-cell additive solutions up to 42 days; platelets at 22 ± 2 °C with continuous agitation and 3/5 days according to bag/manufacturer; FFP and cryoprecipitate at −30 °C or below for up to 12 months. Clause 8.10.5.2 specifies thawed FFP use within 6 h at room temperature or up to 24 h refrigerated at 4 °C.
+
+Source: https://clinicalestablishments.mohfw.gov.in/sites/default/files/2023-03/1491_0.pdf
+
+The defaults are tied to the preparation assumptions shown in parentheses. The application does not capture all processing details (e.g. anticoagulant/additive solution, open vs closed processing, or platelet bag manufacturer); therefore the auto-calculated expiry is a demonstration default, not an authoritative expiry for an individual unit. Actual expiry must follow the component label, approved blood-centre SOP and applicable regulations. Thawed plasma is represented separately from frozen FFP. Platelet agitation is a required storage condition but is not measured by this temperature-only simulator.
 
 ## 5. Sensor simulator (`services/sensor_simulator.py`)
 

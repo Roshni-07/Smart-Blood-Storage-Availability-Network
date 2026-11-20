@@ -1,92 +1,103 @@
-import { BellOff, CalendarClock, Check, PackageMinus, ThermometerSnowflake, ThermometerSun, TimerOff } from 'lucide-react'
-import { useState } from 'react'
-import { Badge, Button, Card, EmptyState, ErrorBanner, Input, Loading, PageHeader, SEVERITY_TONE } from '../components/ui'
+import { BellOff } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import AlertItem from '../components/AlertItem'
+import { useToast } from '../components/Toast'
+import { Card, EmptyState, ErrorBanner, FilterDropdown, Input, LoadingState, PageHeader, Segmented } from '../components/ui'
 import { usePolling } from '../hooks/usePolling'
 import { api, errorMessage } from '../services/api'
-import { fmtDateTime, timeAgo } from '../utils/format'
-
-const TYPE_INFO = {
-  TEMP_HIGH: { label: 'Temperature too high', icon: ThermometerSun },
-  TEMP_LOW: { label: 'Temperature too low', icon: ThermometerSnowflake },
-  EXPIRING_SOON: { label: 'Expiring soon', icon: CalendarClock },
-  EXPIRED: { label: 'Unit expired', icon: TimerOff },
-  LOW_STOCK: { label: 'Low stock', icon: PackageMinus },
-}
-const ICON_TONE = { CRITICAL: 'bg-red-100 text-red-700', WARNING: 'bg-amber-100 text-amber-700', INFO: 'bg-sky-100 text-sky-700' }
 
 const VIEWS = [
-  { id: 'unacknowledged', label: 'Needs acknowledgement' },
-  { id: 'active', label: 'Active conditions' },
-  { id: 'all', label: 'All history' },
+  { value: 'unacknowledged', label: 'Needs acknowledgement' },
+  { value: 'active', label: 'Active conditions' },
+  { value: 'all', label: 'All history' },
 ]
 
+function Summary({ label, value, tone, hint }) {
+  const color = tone === 'red' ? 'text-crit' : tone === 'amber' ? 'text-warn' : tone === 'green' ? 'text-ok' : 'text-ink'
+  return (
+    <div className="rounded-xl border border-line bg-surface px-5 py-4">
+      <p className="text-[13px] text-muted">{label}</p>
+      <p className={`mt-1 text-2xl font-semibold tabular-nums tracking-[-0.02em] ${value ? color : 'text-ink'}`}>{value}</p>
+      <p className="mt-0.5 text-xs text-subtle">{hint}</p>
+    </div>
+  )
+}
+
 export default function Alerts() {
+  const toast = useToast()
   const [view, setView] = useState('unacknowledged')
+  const [severity, setSeverity] = useState('')
   const [who, setWho] = useState('Duty Officer')
-  const [actionError, setActionError] = useState(null)
+  const [ackingId, setAckingId] = useState(null)
   const { data, error, loading, refresh } = usePolling(() => api.alerts(view), 5000, [view])
+  // full history feeds the summary counts; facilities resolve zone names
+  const history = usePolling(() => api.alerts('all'), 5000)
+  const facilities = usePolling(api.facilities, 15000)
+
+  const zoneNames = useMemo(() => {
+    const m = {}
+    facilities.data?.forEach((f) => f.zones.forEach((z) => { m[z.id] = z.name }))
+    return m
+  }, [facilities.data])
 
   async function ack(id) {
-    setActionError(null)
+    setAckingId(id)
     try {
       await api.acknowledgeAlert(id, who.trim() || 'Demo User')
+      toast.success('Alert acknowledged', `Recorded as ${who.trim() || 'Demo User'}`)
       refresh()
+      history.refresh()
     } catch (err) {
-      setActionError(errorMessage(err))
+      toast.error('Could not acknowledge alert', errorMessage(err))
+    } finally {
+      setAckingId(null)
     }
   }
+
+  const all = history.data || []
+  const open = all.filter((a) => !a.resolved)
+  const counts = {
+    critical: open.filter((a) => a.severity === 'CRITICAL').length,
+    warning: open.filter((a) => a.severity === 'WARNING').length,
+    resolved: all.filter((a) => a.resolved).length,
+    unack: all.filter((a) => !a.acknowledged).length,
+  }
+  const rows = (data || []).filter((a) => !severity || a.severity === severity)
 
   return (
     <>
       <PageHeader title="Alerts"
-        subtitle="Raised automatically by the backend rule engine. Acknowledge = someone has taken responsibility. Resolved = the condition has cleared."
+        description="Raised automatically by the backend rule engine. Acknowledged means someone has taken responsibility; resolved means the condition has cleared."
         actions={<Input label="Acknowledging as" value={who} onChange={(e) => setWho(e.target.value)} className="w-52" />} />
-      <ErrorBanner message={error || actionError} />
+      <ErrorBanner message={error || history.error} />
 
-      <div className="mb-4 flex flex-wrap gap-1 rounded-lg bg-slate-100 p-1 text-sm w-fit">
-        {VIEWS.map((v) => (
-          <button key={v.id} onClick={() => setView(v.id)}
-            className={`rounded-md px-3 py-1.5 ${view === v.id ? 'bg-white font-medium text-slate-900 shadow-sm' : 'text-slate-600'}`}>
-            {v.label}
-          </button>
-        ))}
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Summary label="Critical" value={counts.critical} tone="red" hint="Active, not yet cleared" />
+        <Summary label="Warnings" value={counts.warning} tone="amber" hint="Active, not yet cleared" />
+        <Summary label="Resolved" value={counts.resolved} tone="green" hint="Cleared automatically" />
+        <Summary label="Awaiting acknowledgement" value={counts.unack} hint="Across all severities" />
       </div>
 
-      <Card bodyClass="p-0">
-        {loading && !data ? <Loading /> : !data?.length ? (
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <Segmented value={view} onChange={setView} options={VIEWS} />
+        <FilterDropdown label="Severity" value={severity} onChange={(e) => setSeverity(e.target.value)} className="w-40">
+          <option value="">All severities</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="WARNING">Warning</option>
+          <option value="INFO">Info</option>
+        </FilterDropdown>
+      </div>
+
+      <Card bodyClass="p-0" className="overflow-hidden">
+        {loading && !data ? <LoadingState /> : !rows.length ? (
           <EmptyState icon={BellOff} title="Nothing here">
-            {view === 'unacknowledged' ? 'Every alert has been acknowledged.' : 'No alerts in this view.'}
+            {view === 'unacknowledged' && !severity ? 'Every alert has been acknowledged.' : 'No alerts match this view.'}
           </EmptyState>
         ) : (
-          <ul className="divide-y divide-slate-100">
-            {data.map((a) => {
-              const info = TYPE_INFO[a.alert_type] || { label: a.alert_type, icon: BellOff }
-              const Icon = info.icon
-              return (
-                <li key={a.id} className={`flex flex-wrap items-start gap-4 px-5 py-4 ${!a.acknowledged && a.severity === 'CRITICAL' ? 'bg-red-50/50' : ''}`}>
-                  <span className={`rounded-lg p-2 ${ICON_TONE[a.severity]}`}><Icon size={18} /></span>
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <Badge tone={SEVERITY_TONE[a.severity]}>{a.severity}</Badge>
-                      <span className="text-sm font-semibold text-slate-800">{info.label}</span>
-                      {a.resolved ? <Badge tone="green">Resolved</Badge> : <Badge tone="slate">Active</Badge>}
-                      {a.facility_name && <span className="text-xs text-slate-500">· {a.facility_name}</span>}
-                    </div>
-                    <p className="text-sm text-slate-700">{a.message}</p>
-                    <p className="mt-1 text-xs text-slate-400">
-                      Raised {fmtDateTime(a.created_at)} ({timeAgo(a.created_at)})
-                      {a.resolved && ` · cleared ${fmtDateTime(a.resolved_at)}`}
-                      {a.acknowledged && ` · acknowledged by ${a.acknowledged_by} at ${fmtDateTime(a.acknowledged_at)}`}
-                    </p>
-                  </div>
-                  {!a.acknowledged && (
-                    <Button size="sm" variant={a.severity === 'CRITICAL' ? 'primary' : 'secondary'} onClick={() => ack(a.id)}>
-                      <Check size={14} /> Acknowledge
-                    </Button>
-                  )}
-                </li>
-              )
-            })}
+          <ul className="divide-y divide-line">
+            {rows.map((a) => (
+              <AlertItem key={a.id} alert={a} zoneName={zoneNames[a.zone_id]} onAcknowledge={ack} acknowledging={ackingId === a.id} />
+            ))}
           </ul>
         )}
       </Card>

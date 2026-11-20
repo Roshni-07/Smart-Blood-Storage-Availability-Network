@@ -30,3 +30,6 @@ export const ZONE_SHORT = {
   PLATELET_INCUBATOR: 'Platelet incubator',
   PLASMA_FREEZER: 'Plasma freezer',
 }
+
+export const titleCase = (s) => (s ? s.charAt(0) + s.slice(1).toLowerCase() : '')
+export const plural = (n, one, many = `${one}s`) => (n === 1 ? one : many)

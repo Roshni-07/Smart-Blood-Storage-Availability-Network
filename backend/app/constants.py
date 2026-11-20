@@ -9,10 +9,17 @@ BLOOD_GROUPS = ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"]
 
 # Component code -> storage rules
 COMPONENTS = {
-    "WB": {"name": "Whole Blood", "min_temp": 2.0, "max_temp": 6.0, "shelf_life_days": 35},
-    "RBC": {"name": "Packed Red Cells", "min_temp": 2.0, "max_temp": 6.0, "shelf_life_days": 42},
-    "PLT": {"name": "Platelets", "min_temp": 20.0, "max_temp": 24.0, "shelf_life_days": 5},
-    "FFP": {"name": "Fresh Frozen Plasma", "min_temp": -40.0, "max_temp": -18.0, "shelf_life_days": 365},
+    # Demo defaults are tied to the preparation assumptions stated here.
+    "WB": {"name": "Whole Blood (CPDA-1 assumed)", "min_temp": 2.0, "max_temp": 6.0,
+           "shelf_life_days": 35, "shelf_life_basis": "CPDA-1; CPD is max 21 days"},
+    "RBC": {"name": "Packed Red Cells (additive solution assumed)", "min_temp": 2.0, "max_temp": 6.0,
+            "shelf_life_days": 42, "shelf_life_basis": "SAGM/ADSOL/NUTRICEL; CPDA-1 max 35 days; open system 24 h"},
+    "PLT": {"name": "Platelets (5-day closed-system default)", "min_temp": 20.0, "max_temp": 24.0,
+            "shelf_life_days": 5, "shelf_life_basis": "3 or 5 days per bag manufacturer/regulator; continuous agitation required"},
+    "FFP": {"name": "Fresh Frozen Plasma", "min_temp": -80.0, "max_temp": -30.0,
+            "shelf_life_days": 365, "shelf_life_basis": "Frozen at -30 °C or below; max 12 months"},
+    "TFP": {"name": "Thawed Plasma", "min_temp": 2.0, "max_temp": 6.0,
+            "shelf_life_days": None, "shelf_life_basis": "Refrigerated at 2–6 °C; use within 24 h after thawing; expiry must be entered manually"},
 }
 
 UNIT_STATUSES = ["AVAILABLE", "RESERVED", "ISSUED", "EXPIRED", "DISCARDED"]
@@ -21,7 +28,7 @@ UNIT_STATUSES = ["AVAILABLE", "RESERVED", "ISSUED", "EXPIRED", "DISCARDED"]
 ZONE_TYPES = {
     "REFRIGERATOR": {
         "label": "Blood Bank Refrigerator",
-        "components": ["WB", "RBC"],
+        "components": ["WB", "RBC", "TFP"],
         "setpoint": 4.0,
         "min_temp": 2.0,
         "max_temp": 6.0,
@@ -32,13 +39,17 @@ ZONE_TYPES = {
         "setpoint": 22.0,
         "min_temp": 20.0,
         "max_temp": 24.0,
+        "agitation_required": True,
+        "agitation_mode": "continuous gentle flatbed agitation or rotor",
+        "flatbed_oscillations_per_min": [60, 70],
+        "rotor_cycles_per_min": [5, 10],
     },
     "PLASMA_FREEZER": {
         "label": "Plasma Freezer",
         "components": ["FFP"],
         "setpoint": -30.0,
-        "min_temp": -40.0,
-        "max_temp": -18.0,
+        "min_temp": -80.0,  # demo lower alarm boundary; not a regulatory minimum
+        "max_temp": -30.0,  # Indian NBTC standard: -30 °C or colder
     },
 }
 
@@ -68,7 +79,7 @@ def compatible_donor_groups(recipient_group: str, component: str) -> list[str]:
 
     Simplified prototype logic:
       * WB / RBC  -> red-cell compatibility
-      * FFP / PLT -> plasma (ABO) compatibility
+      * FFP / TFP / PLT -> simplified plasma ABO compatibility
     """
     if component in ("WB", "RBC"):
         return RED_CELL_COMPATIBLE[recipient_group]

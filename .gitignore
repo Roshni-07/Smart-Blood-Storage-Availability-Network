@@ -1,24 +1,17 @@
 # Python
-venv/
-.venv/
+backend/venv/
 __pycache__/
-*.py[cod]
+*.pyc
+.pytest_cache/
 
-# Node
-node_modules/
-dist/
+# Database (re-created automatically with demo data)
+backend/*.db
 
-# Environment variables and secrets
-.env
-.env.*
-!.env.example
+# Node / Vite
+frontend/node_modules/
+frontend/dist/
 
-# Local databases
-*.db
-*.sqlite
-*.sqlite3
-
-# Editor / OS
+# Editors / OS
 .vscode/
 .idea/
 .DS_Store

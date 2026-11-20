@@ -17,7 +17,7 @@ UtcDatetime = Annotated[
 ]
 
 BloodGroup = Literal["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"]
-Component = Literal["WB", "RBC", "PLT", "FFP"]
+Component = Literal["WB", "RBC", "PLT", "FFP", "TFP"]
 UnitStatus = Literal["AVAILABLE", "RESERVED", "ISSUED", "EXPIRED", "DISCARDED"]
 
 assert set(BloodGroup.__args__) == set(BLOOD_GROUPS)

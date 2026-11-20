@@ -29,11 +29,11 @@ FACILITIES = [
 GROUP_WEIGHTS = {"O+": 36, "B+": 31, "A+": 21, "AB+": 6, "O-": 2, "B-": 2, "A-": 1, "AB-": 1}
 
 # How many units of each component per facility
-STOCK_PLAN = {"CBC": {"RBC": 26, "WB": 4, "PLT": 6, "FFP": 12},
-              "NHB": {"RBC": 18, "WB": 3, "PLT": 4, "FFP": 8},
-              "ESH": {"RBC": 12, "WB": 2, "PLT": 3, "FFP": 6}}
+STOCK_PLAN = {"CBC": {"RBC": 26, "WB": 4, "PLT": 6, "FFP": 12, "TFP": 0},
+              "NHB": {"RBC": 18, "WB": 3, "PLT": 4, "FFP": 8, "TFP": 0},
+              "ESH": {"RBC": 12, "WB": 2, "PLT": 3, "FFP": 6, "TFP": 0}}
 
-VOLUME = {"WB": (450, 450), "RBC": (280, 350), "PLT": (50, 70), "FFP": (200, 250)}
+VOLUME = {"WB": (450, 450), "RBC": (280, 350), "PLT": (50, 70), "FFP": (200, 250), "TFP": (200, 250)}
 HISTORY_POINTS = 60  # pre-filled readings per zone so charts are not empty
 
 

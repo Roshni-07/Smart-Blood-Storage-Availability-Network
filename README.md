@@ -3,7 +3,7 @@
 A locally runnable prototype that monitors **simulated** blood storage facilities,
 tracks blood units, searches availability across facilities and raises rule-based alerts.
 
-> **Prototype only.** Facilities and sensor readings are simulated. This is a software
+> **Prototype only.** Facilities and sensor readings are simulated. Storage rules are demonstration defaults tied to stated preparation assumptions; they are not a substitute for labelled expiry dates or blood-centre SOPs. This is a software
 > demonstration, not a validated medical device or certified blood-bank system, and it
 > does not control real storage equipment.
 

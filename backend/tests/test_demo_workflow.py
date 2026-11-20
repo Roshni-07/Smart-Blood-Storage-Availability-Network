@@ -90,3 +90,29 @@ def test_compatibility_rules():
     assert compatible_donor_groups("O-", "RBC") == ["O-"]
     assert set(compatible_donor_groups("O+", "FFP")) == {"O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"}
     assert set(compatible_donor_groups("AB-", "FFP")) == {"AB-", "AB+"}
+
+
+def test_thawed_plasma_metadata_is_refrigerated_and_one_day(client):
+    meta = client.get("/api/meta").json()
+    thawed = next(c for c in meta["components"] if c["code"] == "TFP")
+    assert thawed["min_temp"] == 2.0
+    assert thawed["max_temp"] == 6.0
+    assert thawed["shelf_life_days"] is None
+
+
+def test_thawed_plasma_requires_explicit_expiry_date(client):
+    from datetime import timedelta
+    facility_id = client.get("/api/facilities").json()[0]["id"]
+    today = date.today()
+    missing_expiry = client.post("/api/inventory", json={
+        "blood_group": "AB+", "component": "TFP", "volume_ml": 250,
+        "collected_on": today.isoformat(), "facility_id": facility_id,
+    })
+    assert missing_expiry.status_code == 400
+    with_expiry = client.post("/api/inventory", json={
+        "blood_group": "AB+", "component": "TFP", "volume_ml": 250,
+        "collected_on": today.isoformat(), "expires_on": (today + timedelta(days=1)).isoformat(),
+        "facility_id": facility_id,
+    })
+    assert with_expiry.status_code == 201
+    assert with_expiry.json()["zone_name"] == "Blood Bank Refrigerator"

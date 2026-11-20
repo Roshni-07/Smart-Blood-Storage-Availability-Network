@@ -84,8 +84,10 @@ def register_unit(data: BloodUnitCreate, db: Session = Depends(get_db)):
     if data.collected_on > today:
         raise HTTPException(400, "Collection date cannot be in the future")
 
-    expires_on = data.expires_on or data.collected_on + timedelta(
-        days=COMPONENTS[data.component]["shelf_life_days"])
+    if data.component == "TFP" and data.expires_on is None:
+        raise HTTPException(400, "Thawed plasma expiry must be entered from its thawing time (use within 24 hours)")
+    shelf_life_days = COMPONENTS[data.component]["shelf_life_days"]
+    expires_on = data.expires_on or data.collected_on + timedelta(days=shelf_life_days)
     if expires_on <= data.collected_on:
         raise HTTPException(400, "Expiry date must be after the collection date")
     if expires_on < today:
